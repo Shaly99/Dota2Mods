@@ -2428,9 +2428,9 @@ public class frmMain : Form
         labelWord.ForeColor = Color.Gray;
         labelWord.Location = new Point(18, 13);
         labelWord.Name = "labelWord";
-        labelWord.Size = new Size(44, 15);
+        labelWord.Size = new Size(52, 15);
         labelWord.TabIndex = 52;
-        labelWord.Text = "World";
+        labelWord.Text = "WORLD";
         labelWord.Click += Menu_Click;
         labelWord.MouseLeave += Menu_MouseLeave;
         labelWord.MouseMove += Menu_MouseMove;
@@ -2455,9 +2455,9 @@ public class frmMain : Form
         labelCreateMod.ForeColor = Color.Gray;
         labelCreateMod.Location = new Point(5, 13);
         labelCreateMod.Name = "labelCreateMod";
-        labelCreateMod.Size = new Size(77, 15);
+        labelCreateMod.Size = new Size(85, 15);
         labelCreateMod.TabIndex = 56;
-        labelCreateMod.Text = "Create Mod";
+        labelCreateMod.Text = "CREATE MOD";
         labelCreateMod.Click += Menu_Click;
         labelCreateMod.MouseLeave += Menu_MouseLeave;
         labelCreateMod.MouseMove += Menu_MouseMove;
@@ -2482,9 +2482,9 @@ public class frmMain : Form
         labelMisc.ForeColor = Color.Gray;
         labelMisc.Location = new Point(24, 13);
         labelMisc.Name = "labelMisc";
-        labelMisc.Size = new Size(29, 15);
+        labelMisc.Size = new Size(37, 15);
         labelMisc.TabIndex = 51;
-        labelMisc.Text = "HUI";
+        labelMisc.Text = "MISC";
         labelMisc.Click += Menu_Click;
         labelMisc.MouseLeave += Menu_MouseLeave;
         labelMisc.MouseMove += Menu_MouseMove;
@@ -2509,9 +2509,9 @@ public class frmMain : Form
         labelHeroes.ForeColor = Color.FromArgb(224, 224, 224);
         labelHeroes.Location = new Point(16, 13);
         labelHeroes.Name = "labelHeroes";
-        labelHeroes.Size = new Size(49, 15);
+        labelHeroes.Size = new Size(55, 15);
         labelHeroes.TabIndex = 50;
-        labelHeroes.Text = "Heroes";
+        labelHeroes.Text = "HEROES";
         labelHeroes.Click += Menu_Click;
         labelHeroes.MouseLeave += Menu_MouseLeave;
         labelHeroes.MouseMove += Menu_MouseMove;

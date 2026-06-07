@@ -40,6 +40,7 @@ internal static class Program
 
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(defaultValue: false);
+        FontService.Initialize();
         Application.Run(new frmMain());
     }
 }
