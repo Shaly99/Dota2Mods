@@ -1,0 +1,21 @@
+namespace SKYNET.Interop.Windows;
+
+public enum WH
+{
+    MSGFILTER = -1,
+    JOURNALRECORD,
+    JOURNALPLAYBACK,
+    KEYBOARD,
+    GETMESSAGE,
+    CALLWNDPROC,
+    CBT,
+    SYSMSGFILTER,
+    MOUSE,
+    HARDWARE,
+    DEBUG,
+    SHELL,
+    FOREGROUNDIDLE,
+    CALLWNDPROCRET,
+    KEYBOARD_LL,
+    MOUSE_LL
+}

@@ -1,0 +1,8 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+data/VPKGenerator/
+data/vpk.hash
+SkynetMods/
