@@ -277,6 +277,7 @@ public class frmMain : Form
     public frmMain()
     {
         InitializeComponent();
+        
         base.AutoScaleMode = AutoScaleMode.Inherit;
         frm = this;
 
@@ -3918,4 +3919,6 @@ public class frmMain : Form
 
         ServiceContainer.Register<BundleHandlerRegistry>(bundleRegistry);
     }
+
+    
 }

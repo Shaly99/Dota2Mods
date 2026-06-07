@@ -77,4 +77,5 @@ public static class FontService
         _radianceFamily is not null
             ? new Font(_radianceFamily, size, FontStyle.Regular, GraphicsUnit.Point)
             : new Font("Arial", size, FontStyle.Regular, GraphicsUnit.Point);
+
 }
