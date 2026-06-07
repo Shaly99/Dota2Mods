@@ -53,6 +53,7 @@ public class frmSettings : Form
     public frmSettings()
     {
         InitializeComponent();
+        FontService.ApplyRadianceToForm(this);
         ActiveSounds.CheckedChanged += ActiveSounds_CheckedChanged;
     }
 

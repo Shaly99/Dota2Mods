@@ -277,7 +277,8 @@ public class frmMain : Form
     public frmMain()
     {
         InitializeComponent();
-        
+        FontService.ApplyRadianceToForm(this);
+
         base.AutoScaleMode = AutoScaleMode.Inherit;
         frm = this;
 
@@ -930,54 +931,32 @@ public class frmMain : Form
 
     private void HoverPollTimer_Tick(object sender, EventArgs e)
     {
-        // Solo activo en el tab de héroes
-        if (tabControl1.SelectedTab != tabPage1)
+        try
         {
-            if (_currentHoveredPortrait != null)
-            {
-                _currentHoveredPortrait = null;
-                _heroHoverOverlay?.Hide();
-            }
-            return;
-        }
+            if (IsDisposed || !IsHandleCreated) return;
 
-        // Obtener posición del cursor en coordenadas de tabPage1
-        Point mousePos = tabPage1.PointToClient(Cursor.Position);
-
-        // Buscar qué HeroPortrait está debajo del cursor
-        HeroPortrait foundPortrait = null;
-        foreach (Control c in tabPage1.Controls)
-        {
-            if (c is HeroPortrait hp && hp.Bounds.Contains(mousePos))
+            // Recorremos solo controles vivos
+            foreach (Control ctrl in this.Controls)
             {
-                foundPortrait = hp;
-                break;
+                if (ctrl.IsDisposed || !ctrl.IsHandleCreated) continue;
+
+                Point mouse = ctrl.PointToClient(Control.MousePosition);
+                bool isHovered = ctrl.ClientRectangle.Contains(mouse);
+
+                if (ctrl is FlatButton btn)
+                {
+                    btn.IsHovered = isHovered;
+                }
             }
         }
-
-        // Si cambió el portrait bajo el cursor
-        if (foundPortrait != _currentHoveredPortrait)
+        catch (ObjectDisposedException)
         {
-            _currentHoveredPortrait = foundPortrait;
-
-            if (foundPortrait != null)
-            {
-                // Mostrar overlay sobre el nuevo portrait
-                var videoService = ServiceContainer.TryGet<IHeroVideoService>();
-                string videoPath = videoService?.GetVideoPath(foundPortrait.HeroName);
-
-                var rect = new Rectangle(foundPortrait.Location, foundPortrait.Size);
-                _heroHoverOverlay.ShowOver(
-                    rect,
-                    foundPortrait.HeroImage,
-                    foundPortrait.HeroDisplayName,
-                    videoPath);
-            }
-            else
-            {
-                // El cursor salió de todos los portraits
-                _heroHoverOverlay?.Hide();
-            }
+            // Control disposed durante el tick, ignorar silenciosamente
+            HoverPollTimer.Stop();
+        }
+        catch (Exception ex)
+        {
+            modCommon.Save(ex);
         }
     }
 

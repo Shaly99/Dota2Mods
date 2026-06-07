@@ -15,6 +15,7 @@ public class frmLoading : Form
     public frmLoading(Items item)
     {
         InitializeComponent();
+        FontService.ApplyRadianceToForm(this);
         items = item;
     }
 

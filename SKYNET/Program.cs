@@ -38,9 +38,11 @@ internal static class Program
             MessageBox.Show($"Error de hilo: {e.Exception.Message}\n\n{e.Exception.StackTrace}", "Crash detectado");
         };
 
-        Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(defaultValue: false);
+        FontService.Initialize();
         Application.SetDefaultFont(FontService.GetRadiance(9f));
-        Application.Run(new frmMain());
+
+        var main = new frmMain();
+        FontService.ApplyRadianceToForm(main);
+        Application.Run(main);
     }
 }

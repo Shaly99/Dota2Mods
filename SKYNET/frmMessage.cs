@@ -42,6 +42,7 @@ public class frmMessage : Form
     public frmMessage(string message, TypeMessage type = TypeMessage.Normal)
     {
         InitializeComponent();
+        FontService.ApplyRadianceToForm(this);
         typeMessage = type;
         switch (typeMessage)
         {

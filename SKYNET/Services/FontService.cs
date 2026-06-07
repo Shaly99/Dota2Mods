@@ -77,5 +77,20 @@ public static class FontService
         _radianceFamily is not null
             ? new Font(_radianceFamily, size, FontStyle.Regular, GraphicsUnit.Point)
             : new Font("Arial", size, FontStyle.Regular, GraphicsUnit.Point);
+    // ════════════════════════════════════════════════════════════
+    // APLICAR RADIANCE RECURSIVAMENTE A UN FORMULARIO
+    // ════════════════════════════════════════════════════════════
 
+    public static void ApplyRadianceToForm(Control root, float size = 9f)
+    {
+        foreach (Control ctrl in root.Controls)
+        {
+            if (ctrl.IsDisposed) continue;
+
+            ctrl.Font = GetRadiance(size);
+
+            if (ctrl.HasChildren)
+                ApplyRadianceToForm(ctrl, size);
+        }
+    }
 }

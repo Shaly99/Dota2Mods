@@ -46,6 +46,7 @@ public class frmAbout : Form
     public frmAbout()
     {
         InitializeComponent();
+        FontService.ApplyRadianceToForm(this);
         textBox1.Focus();
         VersionInfo.Text = "v1.10";
         AudioPlayer.PlaySound("sounds/ui/projection/doom_pick.vsnd", toStop: false);
