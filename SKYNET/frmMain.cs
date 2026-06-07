@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
+using ValveResourceFormat.ResourceTypes;
 
 namespace SKYNET;
 
@@ -277,6 +278,11 @@ public class frmMain : Form
     public frmMain()
     {
         InitializeComponent();
+        // ════════════════════════════════════════
+        // FONT REAVER PARA BOTONES DEL BANNER SUPERIOR
+        // ════════════════════════════════════════
+
+        ApplyReaverToBannerButtons();
         FontService.ApplyRadianceToForm(this);
 
         base.AutoScaleMode = AutoScaleMode.Inherit;
@@ -935,24 +941,19 @@ public class frmMain : Form
         {
             if (IsDisposed || !IsHandleCreated) return;
 
-            // Recorremos solo controles vivos
+            Point screenMouse = Control.MousePosition;
+
             foreach (Control ctrl in this.Controls)
             {
-                if (ctrl.IsDisposed || !ctrl.IsHandleCreated) continue;
+                if (ctrl is null || ctrl.IsDisposed || !ctrl.IsHandleCreated) continue;
 
-                Point mouse = ctrl.PointToClient(Control.MousePosition);
+                Point mouse = ctrl.PointToClient(screenMouse);
                 bool isHovered = ctrl.ClientRectangle.Contains(mouse);
-
-                if (ctrl is FlatButton btn)
-                {
-                    btn.IsHovered = isHovered;
-                }
             }
         }
         catch (ObjectDisposedException)
         {
-            // Control disposed durante el tick, ignorar silenciosamente
-            HoverPollTimer.Stop();
+            _hoverPollTimer.Stop();
         }
         catch (Exception ex)
         {
@@ -3899,5 +3900,18 @@ public class frmMain : Form
         ServiceContainer.Register<BundleHandlerRegistry>(bundleRegistry);
     }
 
-    
+    private void ApplyReaverToBannerButtons()
+    {
+        var reaverFont = FontService.GetReaver(13f);
+
+        Heroes.Font = reaverFont;
+        World.Font = reaverFont;
+        Misc.Font = reaverFont;
+        Create.Font = reaverFont;
+
+        Heroes.Invalidate();
+        World.Invalidate();
+        Misc.Invalidate();
+        Create.Invalidate();
+    }
 }

@@ -154,7 +154,15 @@ public class FlatButton : Control
         DoubleBuffered = true;
         base.Size = new Size(100, 32);
         BackColor = Color.Transparent;
-        Font = new Font("Segoe UI", 9f);
+        // Font por defecto: si FontService está inicializado usa Radiance, sino Segoe UI
+        try
+        {
+            Font = SKYNET.FontService.GetRadiance(9f);
+        }
+        catch
+        {
+            Font = new Font("Segoe UI", 9f);
+        }
         Cursor = Cursors.Hand;
         _ButtonStyle = _Style.TextOnly;
         _ImageAlign = _ImgAlign.Left;
