@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Drawing.Text;
+namespace SKYNET;
 
 public class FlatContextMenuStrip : ContextMenuStrip
 {
@@ -77,7 +78,7 @@ public class FlatContextMenuStrip : ContextMenuStrip
         base.Renderer = new ToolStripProfessionalRenderer(new TColorTable());
         base.ShowImageMargin = false;
         base.ForeColor = Color.White;
-        Font = new Font("Segoe UI", 8f);
+        Font = FontService.GetRadiance(10f);
     }
 
     protected override void OnPaint(PaintEventArgs e)

@@ -42,7 +42,6 @@ public class frmMessage : Form
     public frmMessage(string message, TypeMessage type = TypeMessage.Normal)
     {
         InitializeComponent();
-        FontService.ApplyRadianceToForm(this);
         typeMessage = type;
         switch (typeMessage)
         {
@@ -150,7 +149,7 @@ public class frmMessage : Form
         this.acepctBtn.BackColor = System.Drawing.Color.FromArgb(43, 47, 48);
         this.acepctBtn.BackColorMouseOver = System.Drawing.Color.FromArgb(57, 62, 63);
         this.acepctBtn.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.acepctBtn.Font = new System.Drawing.Font("Segoe UI", 9f);
+        this.acepctBtn.Font = FontService.GetRadiance(10f);
         this.acepctBtn.ForeColor = System.Drawing.Color.FromArgb(147, 157, 160);
         this.acepctBtn.ForeColorMouseOver = System.Drawing.Color.Empty;
         this.acepctBtn.ImageAlignment = FlatButton._ImgAlign.Left;
@@ -166,7 +165,7 @@ public class frmMessage : Form
         this.cancelBtn.BackColor = System.Drawing.Color.FromArgb(43, 47, 48);
         this.cancelBtn.BackColorMouseOver = System.Drawing.Color.FromArgb(57, 62, 63);
         this.cancelBtn.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.cancelBtn.Font = new System.Drawing.Font("Segoe UI", 9f);
+        this.cancelBtn.Font = FontService.GetRadiance(10f);
         this.cancelBtn.ForeColor = System.Drawing.Color.FromArgb(147, 157, 160);
         this.cancelBtn.ForeColorMouseOver = System.Drawing.Color.Empty;
         this.cancelBtn.ImageAlignment = FlatButton._ImgAlign.Left;
@@ -197,7 +196,7 @@ public class frmMessage : Form
         this.Cancel.UseVisualStyleBackColor = true;
         this.txtMessage.BackColor = System.Drawing.Color.FromArgb(28, 29, 32);
         this.txtMessage.BackColorControl = System.Drawing.Color.FromArgb(28, 29, 32);
-        this.txtMessage.Font = new System.Drawing.Font("Segoe UI", 9f);
+        this.txtMessage.Font = FontService.GetRadiance(10f);
         this.txtMessage.ForeColor = System.Drawing.Color.FromArgb(147, 157, 160);
         this.txtMessage.isCustomColor = false;
         this.txtMessage.Location = new System.Drawing.Point(12, 10);

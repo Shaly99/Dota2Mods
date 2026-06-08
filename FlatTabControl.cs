@@ -1,6 +1,7 @@
 using Microsoft.VisualBasic.CompilerServices;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+namespace SKYNET;
 
 public class FlatTabControl : TabControl
 {
@@ -13,7 +14,7 @@ public class FlatTabControl : TabControl
     {
         SetStyle(ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, value: true);
         DoubleBuffered = true;
-        Font = new Font("Segoe UI", 10f);
+        Font = FontService.GetRadiance(11f);
         base.SizeMode = TabSizeMode.Fixed;
         base.ItemSize = new Size(120, 40);
     }
@@ -23,9 +24,7 @@ public class FlatTabControl : TabControl
         Helpers.B = new Bitmap(base.Width, base.Height);
         Helpers.G = Graphics.FromImage(Helpers.B);
         Graphics g = Helpers.G;
-        g.SmoothingMode = SmoothingMode.HighQuality;
-        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-        g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+        SKYNET.FontService.ApplyTextSmoothing(g);
         g.Clear(Color.FromArgb(31, 32, 35));
         try
         {

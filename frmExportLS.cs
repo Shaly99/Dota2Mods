@@ -366,7 +366,7 @@ public class frmExportLS : Form
         this.cancelBtn.BackColor = System.Drawing.Color.FromArgb(43, 47, 48);
         this.cancelBtn.BackColorMouseOver = System.Drawing.Color.FromArgb(57, 62, 63);
         this.cancelBtn.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.cancelBtn.Font = new System.Drawing.Font("Segoe UI", 9f);
+        this.cancelBtn.Font = FontService.GetRadiance(10f);
         this.cancelBtn.ForeColor = System.Drawing.Color.FromArgb(147, 157, 160);
         this.cancelBtn.ForeColorMouseOver = System.Drawing.Color.Empty;
         this.cancelBtn.ImageAlignment = FlatButton._ImgAlign.Left;

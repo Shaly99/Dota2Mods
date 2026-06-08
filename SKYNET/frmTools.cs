@@ -63,7 +63,6 @@ public class frmTools : Form, IItemHost
     public frmTools(Items items)
     {
         InitializeComponent();
-        FontService.ApplyRadianceToForm(this);
         frm = this;
 
         // 🔑 KeyPreview para que ESC funcione aunque haya foco en controles hijos

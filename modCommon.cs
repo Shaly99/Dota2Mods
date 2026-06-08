@@ -117,6 +117,26 @@ public class modCommon
         return char.ToUpper(text[0]) + text.Substring(1).ToLower();
     }
 
+    /// <summary>
+    /// Convierte un texto tipo "off_hand" o "OFF_HAND" en "Off Hand".
+    /// Reemplaza guiones bajos por espacios y capitaliza cada palabra.
+    /// </summary>
+    internal static string ToTitleCase(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+
+        string normalized = text.Replace('_', ' ').ToLower();
+        string[] words = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        for (int i = 0; i < words.Length; i++)
+        {
+            if (words[i].Length > 0)
+                words[i] = char.ToUpper(words[i][0]) + words[i].Substring(1);
+        }
+
+        return string.Join(" ", words);
+    }
+
     internal static string PreparePrefab(string prefab)
     {
         string text = prefab switch

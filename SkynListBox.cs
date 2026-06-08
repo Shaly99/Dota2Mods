@@ -1,3 +1,4 @@
+using SKYNET;
 using System.Drawing.Drawing2D;
 
 internal class SkynListBox : ListBox
@@ -8,7 +9,7 @@ internal class SkynListBox : ListBox
         DrawMode = DrawMode.OwnerDrawFixed;
         base.IntegralHeight = false;
         ItemHeight = 18;
-        Font = new Font("Seoge UI", 11f, FontStyle.Regular);
+        Font = FontService.GetRadiance(11f);
     }
 
     protected override void OnDrawItem(DrawItemEventArgs e)
@@ -17,6 +18,7 @@ internal class SkynListBox : ListBox
         {
             base.OnDrawItem(e);
             e.DrawBackground();
+            FontService.ApplyTextSmoothing(e.Graphics);
             LinearGradientBrush linearGradientBrush = new LinearGradientBrush(e.Bounds, Color.FromArgb(246, 132, 85), Color.FromArgb(231, 108, 57), 90f);
             if (Convert.ToInt32(e.State & DrawItemState.Selected) == 1)
             {

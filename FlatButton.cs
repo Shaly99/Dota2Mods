@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+namespace SKYNET;
+
 
 public class FlatButton : Control
 {
@@ -155,14 +157,7 @@ public class FlatButton : Control
         base.Size = new Size(100, 32);
         BackColor = Color.Transparent;
         // Font por defecto: si FontService está inicializado usa Radiance, sino Segoe UI
-        try
-        {
-            Font = SKYNET.FontService.GetRadiance(9f);
-        }
-        catch
-        {
-            Font = new Font("Segoe UI", 9f);
-        }
+        Font = FontService.GetRadiance(9f);
         Cursor = Cursors.Hand;
         _ButtonStyle = _Style.TextOnly;
         _ImageAlign = _ImgAlign.Left;
@@ -224,9 +219,7 @@ public class FlatButton : Control
             Rectangle rectangle = new Rectangle(0, 0, W, H);
             new Point((int)Math.Round(Math.Round((double)W / 2.0)), (int)Math.Round(Math.Round((double)H / 2.0)));
             Graphics g = Helpers.G;
-            g.SmoothingMode = SmoothingMode.HighQuality;
-            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            SKYNET.FontService.ApplyTextSmoothing(g);
             g.Clear(BackColor);
             switch (State)
             {

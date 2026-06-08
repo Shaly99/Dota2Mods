@@ -1,6 +1,8 @@
+using SKYNET;
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+namespace SKYNET;
 
 internal class FlatCheckBox : Control
 {
@@ -135,7 +137,7 @@ internal class FlatCheckBox : Control
         SetStyle(ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, value: true);
         DoubleBuffered = true;
         Cursor = Cursors.Hand;
-        Font = new Font("Segoe UI", 10f);
+        Font = FontService.GetRadiance(11f);
         base.Size = new Size(112, 22);
     }
 
@@ -149,8 +151,7 @@ internal class FlatCheckBox : Control
             H = base.Height - 1;
             Rectangle rect = new Rectangle(0, 2, base.Height - 5, base.Height - 5);
             Graphics g = Helpers.G;
-            g.SmoothingMode = SmoothingMode.HighQuality;
-            g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+            FontService.ApplyTextSmoothing(g);
             g.Clear(Color.Transparent);
             g.FillRectangle(new SolidBrush(_BoxBackColor), rect);
             switch (State)

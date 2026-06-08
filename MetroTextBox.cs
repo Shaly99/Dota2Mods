@@ -1,4 +1,5 @@
 using System.ComponentModel;
+namespace SKYNET;
 
 [Designer("MetroFramework.Design.Controls.MetroTextBoxDesigner, MetroFramework.Design, Version=1.4.0.0, Culture=neutral, PublicKeyToken=5f91a84759bf584a")]
 public class MetroTextBox : Control, IMetroControl
@@ -17,7 +18,7 @@ public class MetroTextBox : Control, IMetroControl
 
         private Color _waterMarkColor = Color.Red;
 
-        private Font _waterMarkFont = new Font("Segoe UI Emoji", 8.25f, FontStyle.Bold, GraphicsUnit.Point, 0);
+        private Font _waterMarkFont = FontService.GetRadiance(10f);
 
         [DefaultValue("")]
         [Browsable(true)]

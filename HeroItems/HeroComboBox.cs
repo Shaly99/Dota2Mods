@@ -1,3 +1,4 @@
+using SKYNET;
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
 
@@ -41,6 +42,7 @@ internal class HeroComboBox : ComboBox
         }
         Bitmap bitmap = new Bitmap(base.Width, base.Height);
         Graphics graphics = Graphics.FromImage(bitmap);
+        SKYNET.FontService.ApplyTextSmoothing(graphics);
         graphics.Clear(Color.FromArgb(43, 47, 48));
         LinearGradientBrush brush = new LinearGradientBrush(new Rectangle(0, 0, base.Width, base.Height / 5 * 2), Color.FromArgb(63, 67, 68), Color.FromArgb(43, 47, 48), 90f);
         graphics.FillRectangle(brush, new Rectangle(0, 0, base.Width, base.Height / 5 * 2));
@@ -83,6 +85,7 @@ internal class HeroComboBox : ComboBox
                 Height = e.Bounds.Height - 1
             };
             e.DrawBackground();
+            FontService.ApplyTextSmoothing(e.Graphics);
             if ((e.State == (DrawItemState.Focus | DrawItemState.NoAccelerator | DrawItemState.NoFocusRect | DrawItemState.Selected)) | (e.State == (DrawItemState.Focus | DrawItemState.Selected)))
             {
                 e.Graphics.FillRectangle(new SolidBrush(BackColor), e.Bounds);

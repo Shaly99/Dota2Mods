@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.InteropServices;
+namespace SKYNET;
 
 public class SkynListView : ListView
 {
@@ -119,7 +120,7 @@ public class SkynListView : ListView
 
     private ListViewColumnSorter lvwColumnSorter;
 
-    private Font stdFont = new Font("Segoe UI", 9f);
+    private Font stdFont = FontService.GetRadiance(10f);
 
     private float _offset = 0.2f;
 
@@ -428,7 +429,7 @@ public class SkynListView : ListView
 
     public SkynListView()
     {
-        Font = new Font("Segoe UI", 9f);
+        Font = FontService.GetRadiance(10f);
         base.HideSelection = true;
         base.OwnerDraw = true;
         base.DrawColumnHeader += MetroListView_DrawColumnHeader;
@@ -482,6 +483,7 @@ public class SkynListView : ListView
 
     private void MetroListView_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
     {
+        FontService.ApplyTextSmoothing(e.Graphics);
         Color color = Color.FromArgb(147, 157, 160);
         if (base.View == View.Details)
         {
@@ -565,6 +567,7 @@ public class SkynListView : ListView
 
     private void MetroListView_DrawItem(object sender, DrawListViewItemEventArgs e)
     {
+        FontService.ApplyTextSmoothing(e.Graphics);
         Color color = Color.Red;
         if ((base.View == View.Details) | (base.View == View.List) | (base.View == View.SmallIcon))
         {
@@ -669,7 +672,7 @@ public class SkynListView : ListView
                     int num10 = (e.Item.Bounds.Height - e.Item.SubItems.Count * 15) / 2;
                     Rectangle bounds2 = new Rectangle(e.Item.Bounds.X + num6, e.Item.Bounds.Y + num8, e.Item.Bounds.Width, e.Item.Bounds.Height);
                     TextFormatFlags textFormatFlags2 = TextFormatFlags.Default;
-                    TextRenderer.DrawText(e.Graphics, subItem.Text, new Font("Segoe UI", 9f), bounds2, color, textFormatFlags2 | TextFormatFlags.SingleLine | TextFormatFlags.WordEllipsis);
+                    TextRenderer.DrawText(e.Graphics, subItem.Text, FontService.GetRadiance(10f), bounds2, color, textFormatFlags2 | TextFormatFlags.SingleLine | TextFormatFlags.WordEllipsis);
                     num8 += 15;
                 }
                 return;
@@ -704,6 +707,7 @@ public class SkynListView : ListView
 
     private void MetroListView_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
     {
+        FontService.ApplyTextSmoothing(e.Graphics);
         Color color = Color.FromArgb(147, 157, 160);
         e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(47, 48, 51)), e.Bounds);
         using StringFormat stringFormat = new StringFormat();

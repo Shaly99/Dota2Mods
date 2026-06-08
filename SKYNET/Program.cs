@@ -40,9 +40,6 @@ internal static class Program
 
         FontService.Initialize();
         Application.SetDefaultFont(FontService.GetRadiance(9f));
-
-        var main = new frmMain();
-        FontService.ApplyRadianceToForm(main);
-        Application.Run(main);
+        Application.Run(new frmMain());
     }
 }

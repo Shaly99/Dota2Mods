@@ -27,20 +27,15 @@ public static class FontService
         {
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
 
-            string reaverPath = Path.Combine(basePath, "fonts", "reaver-bold.otf");
-            string radiancePath = Path.Combine(basePath, "fonts", "radiance-bold.otf");
+            string reaverPath = Path.Combine(basePath, "fonts", "reaver-semibold.otf");
+            string radiancePath = Path.Combine(basePath, "fonts", "radiance-semibold.otf");
 
             if (File.Exists(reaverPath))
-            {
                 _fonts.AddFontFile(reaverPath);
-            }
 
             if (File.Exists(radiancePath))
-            {
                 _fonts.AddFontFile(radiancePath);
-            }
 
-            // Buscar las familias por nombre
             foreach (FontFamily family in _fonts.Families)
             {
                 if (family.Name.Contains("Reaver", StringComparison.OrdinalIgnoreCase))
@@ -78,19 +73,18 @@ public static class FontService
             ? new Font(_radianceFamily, size, FontStyle.Regular, GraphicsUnit.Point)
             : new Font("Arial", size, FontStyle.Regular, GraphicsUnit.Point);
     // ════════════════════════════════════════════════════════════
-    // APLICAR RADIANCE RECURSIVAMENTE A UN FORMULARIO
+    // SUAVIZADO DE TEXTO GLOBAL
     // ════════════════════════════════════════════════════════════
 
-    public static void ApplyRadianceToForm(Control root, float size = 9f)
+    /// <summary>
+    /// Aplica el suavizado de texto estándar de la app a un Graphics.
+    /// Usar al principio del OnPaint en controles que dibujan texto.
+    /// </summary>
+    public static void ApplyTextSmoothing(System.Drawing.Graphics g)
     {
-        foreach (Control ctrl in root.Controls)
-        {
-            if (ctrl.IsDisposed) continue;
-
-            ctrl.Font = GetRadiance(size);
-
-            if (ctrl.HasChildren)
-                ApplyRadianceToForm(ctrl, size);
-        }
+        if (g == null) return;
+        g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
     }
 }

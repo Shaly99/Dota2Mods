@@ -129,7 +129,7 @@ public class BoxItems : UserControl
         ((System.ComponentModel.ISupportInitialize)this.Icon).BeginInit();
         base.SuspendLayout();
         this.name.AutoSize = true;
-        this.name.Font = new System.Drawing.Font("Segoe UI Symbol", 7f, System.Drawing.FontStyle.Bold);
+        this.name.Font = FontService.GetRadiance(10f);
         this.name.ForeColor = System.Drawing.Color.Silver;
         this.name.Location = new System.Drawing.Point(0, 3);
         this.name.Name = "name";

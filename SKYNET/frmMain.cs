@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
+using System.Drawing;
 using ValveResourceFormat.ResourceTypes;
 
 namespace SKYNET;
@@ -278,12 +279,6 @@ public class frmMain : Form
     public frmMain()
     {
         InitializeComponent();
-        // ════════════════════════════════════════
-        // FONT REAVER PARA BOTONES DEL BANNER SUPERIOR
-        // ════════════════════════════════════════
-
-        ApplyReaverToBannerButtons();
-        FontService.ApplyRadianceToForm(this);
 
         base.AutoScaleMode = AutoScaleMode.Inherit;
         frm = this;
@@ -292,8 +287,8 @@ public class frmMain : Form
         // Tamaño dinámico al 80% del escritorio (centrado)
         // ════════════════════════════════════════════════════════════
         var screen = Screen.PrimaryScreen.WorkingArea;
-        int newWidth = (int)(screen.Width * 0.80);
-        int newHeight = (int)(screen.Height * 0.85);
+        int newWidth = (int)(1199);
+        int newHeight = (int)(768 * 0.90);
         base.Size = new Size(newWidth, newHeight);
         base.StartPosition = FormStartPosition.CenterScreen;
 
@@ -443,22 +438,12 @@ public class frmMain : Form
             }
         }
         GenerateCache();
-        media = new Media();
+        // media = new Media(); // ← Reemplazado por VlcVideoService
         ClientVersion.Text = "Client version: " + Settings.ClientVersion;
         hook = new Keyboard();
         hook.Install(base.Handle);
 
-        // Agrandar el form al 95% del escritorio
-        this.Load += (s, e) =>
-        {
-            var screen = Screen.FromControl(this).WorkingArea;
-            int newWidth = (int)(screen.Width * 0.95);
-            int newHeight = (int)(screen.Height * 0.95);
-            this.Size = new Size(newWidth, newHeight);
-            this.Location = new Point(
-                screen.X + (screen.Width - newWidth) / 2,
-                screen.Y + (screen.Height - newHeight) / 2);
-        };
+        
     }
 
     internal async void GenerateCache()
@@ -662,7 +647,7 @@ public class frmMain : Form
             var headerLabel = new Label
             {
                 Text = title,
-                Font = new Font("Segoe UI Emoji", 9F, FontStyle.Bold),
+                Font = FontService.GetRadiance(12f),
                 ForeColor = color,
                 BackColor = Color.Transparent,
                 AutoSize = false,
@@ -729,10 +714,14 @@ public class frmMain : Form
         modCommon.InvokeAction(tabPage1, delegate
         {
             _heroHoverOverlay = new HeroHoverOverlay();
+            _heroHoverOverlay.HeroClickedFromOverlay += (s, heroName) =>
+            {
+                ProcessHero(heroName);
+            };
             tabPage1.Controls.Add(_heroHoverOverlay);
             _heroHoverOverlay.BringToFront();
 
-            _hoverPollTimer = new System.Windows.Forms.Timer { Interval = 50 };
+            _hoverPollTimer = new System.Windows.Forms.Timer { Interval = 80 };
             _hoverPollTimer.Tick += HoverPollTimer_Tick;
             _hoverPollTimer.Start();
         });
@@ -940,16 +929,62 @@ public class frmMain : Form
         try
         {
             if (IsDisposed || !IsHandleCreated) return;
+            if (_heroHoverOverlay == null || _heroHoverOverlay.IsDisposed) return;
 
-            Point screenMouse = Control.MousePosition;
-
-            foreach (Control ctrl in this.Controls)
+            // Solo procesar hover si estamos en el tab de héroes
+            if (tabControl1.SelectedTab != tabPage1)
             {
-                if (ctrl is null || ctrl.IsDisposed || !ctrl.IsHandleCreated) continue;
-
-                Point mouse = ctrl.PointToClient(screenMouse);
-                bool isHovered = ctrl.ClientRectangle.Contains(mouse);
+                if (_currentHoveredPortrait != null)
+                {
+                    _heroHoverOverlay.Hide();
+                    _currentHoveredPortrait = null;
+                }
+                return;
             }
+
+            // Obtener posición del mouse relativa al tabPage1
+            Point screenMouse = Control.MousePosition;
+            Point localMouse = tabPage1.PointToClient(screenMouse);
+
+            // Buscar si el mouse está sobre algún HeroPortrait
+            HeroPortrait hoveredPortrait = null;
+            foreach (Control ctrl in tabPage1.Controls)
+            {
+                if (ctrl is HeroPortrait portrait && !portrait.IsDisposed)
+                {
+                    if (portrait.Bounds.Contains(localMouse))
+                    {
+                        hoveredPortrait = portrait;
+                        break;
+                    }
+                }
+            }
+
+            // Si no hay cambio, no hacer nada
+            if (hoveredPortrait == _currentHoveredPortrait) return;
+
+            // Si salimos de un portrait → ocultar overlay
+            if (hoveredPortrait == null)
+            {
+                _heroHoverOverlay.Hide();
+                _currentHoveredPortrait = null;
+                return;
+            }
+
+            // Si entramos a un portrait nuevo → mostrar overlay (si NO está animando)
+            if (_heroHoverOverlay.IsAnimating) return;
+
+            _currentHoveredPortrait = hoveredPortrait;
+
+            var videoService = ServiceContainer.TryGet<IHeroVideoService>();
+            string videoPath = videoService?.GetVideoPath(hoveredPortrait.HeroName);
+
+            _heroHoverOverlay.ShowOver(
+    portraitBounds: hoveredPortrait.Bounds,
+    heroImage: hoveredPortrait.HeroImage,
+    heroName: hoveredPortrait.HeroName,
+    displayName: hoveredPortrait.HeroDisplayName,
+    videoPath: videoPath);
         }
         catch (ObjectDisposedException)
         {
@@ -975,11 +1010,18 @@ public class frmMain : Form
         modCommon.WriteLine("Cargando", loading: true);
         SetLeftRightHero(Name);
         string videoFileName = modCommon.GetVideoFileName(Name);
-        if (File.Exists(VideoFolder + "\\" + videoFileName))
+        string videoPath = Path.Combine(VideoFolder ?? "", videoFileName);
+
+        if (File.Exists(videoPath))
         {
-            media.Open(VideoFolder + "\\" + videoFileName, HeroAvatar);
-            media.Repeat = true;
-            media.Play();
+            var videoService = ServiceContainer.Get<IVideoService>();
+            bool started = videoService.PlayLoop(videoPath, HeroAvatar);
+
+            if (!started)
+            {
+                // Si falla el video, fallback a imagen estática
+                HeroAvatar.Image = modCommon.GetHeroImage(Name);
+            }
         }
         else
         {
@@ -1013,7 +1055,7 @@ public class frmMain : Form
                 {
                     Name = item.item_slot,
                     Item = savedItem,
-                    Type = item.item_slot.ToUpper(),
+                    Type = modCommon.ToTitleCase(item.item_slot),
                     Hero = Name,
                     Size = new Size(108, 97),
                     MaximumSize = new Size(108, 97),
@@ -1044,7 +1086,7 @@ public class frmMain : Form
 
             BoxItems tauntBox = new BoxItems
             {
-                Name = "TAUNT",
+                Name = "Taunt",
                 Item = savedTaunt,
                 Type = "taunt",
                 Hero = Name,
@@ -2393,9 +2435,9 @@ public class frmMain : Form
         // 
         panelWord.BackColor = Color.Transparent;
         panelWord.Controls.Add(labelWord);
-        panelWord.Location = new Point(344, 0);
+        panelWord.Location = new Point(327, 0);
         panelWord.Name = "panelWord";
-        panelWord.Size = new Size(83, 40);
+        panelWord.Size = new Size(95, 40);
         panelWord.TabIndex = 58;
         panelWord.Click += Menu_Click;
         panelWord.MouseLeave += Menu_MouseLeave;
@@ -2405,9 +2447,8 @@ public class frmMain : Form
         // 
         labelWord.AutoSize = true;
         labelWord.BackColor = Color.Transparent;
-        labelWord.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-        labelWord.ForeColor = Color.Gray;
-        labelWord.Location = new Point(18, 13);
+        labelWord.Font = FontService.GetReaver(13f); labelWord.ForeColor = Color.Gray;
+        labelWord.Location = new Point(18, 8);
         labelWord.Name = "labelWord";
         labelWord.Size = new Size(52, 15);
         labelWord.TabIndex = 52;
@@ -2420,9 +2461,9 @@ public class frmMain : Form
         // 
         panelCreateMod.BackColor = Color.Transparent;
         panelCreateMod.Controls.Add(labelCreateMod);
-        panelCreateMod.Location = new Point(535, 0);
+        panelCreateMod.Location = new Point(497, 0);
         panelCreateMod.Name = "panelCreateMod";
-        panelCreateMod.Size = new Size(94, 40);
+        panelCreateMod.Size = new Size(155, 40);
         panelCreateMod.TabIndex = 59;
         panelCreateMod.Click += Menu_Click;
         panelCreateMod.MouseLeave += Menu_MouseLeave;
@@ -2432,9 +2473,8 @@ public class frmMain : Form
         // 
         labelCreateMod.AutoSize = true;
         labelCreateMod.BackColor = Color.Transparent;
-        labelCreateMod.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-        labelCreateMod.ForeColor = Color.Gray;
-        labelCreateMod.Location = new Point(5, 13);
+        labelCreateMod.Font = FontService.GetReaver(13f); labelCreateMod.ForeColor = Color.Gray;
+        labelCreateMod.Location = new Point(5, 8);
         labelCreateMod.Name = "labelCreateMod";
         labelCreateMod.Size = new Size(85, 15);
         labelCreateMod.TabIndex = 56;
@@ -2447,9 +2487,9 @@ public class frmMain : Form
         // 
         panelMisc.BackColor = Color.Transparent;
         panelMisc.Controls.Add(labelMisc);
-        panelMisc.Location = new Point(438, 0);
+        panelMisc.Location = new Point(422, 0);
         panelMisc.Name = "panelMisc";
-        panelMisc.Size = new Size(83, 40);
+        panelMisc.Size = new Size(75, 40);
         panelMisc.TabIndex = 59;
         panelMisc.Click += Menu_Click;
         panelMisc.MouseLeave += Menu_MouseLeave;
@@ -2459,9 +2499,8 @@ public class frmMain : Form
         // 
         labelMisc.AutoSize = true;
         labelMisc.BackColor = Color.Transparent;
-        labelMisc.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-        labelMisc.ForeColor = Color.Gray;
-        labelMisc.Location = new Point(24, 13);
+        labelMisc.Font = FontService.GetReaver(13f); labelMisc.ForeColor = Color.Gray;
+        labelMisc.Location = new Point(24, 8);
         labelMisc.Name = "labelMisc";
         labelMisc.Size = new Size(37, 15);
         labelMisc.TabIndex = 51;
@@ -2474,9 +2513,9 @@ public class frmMain : Form
         // 
         panelHeroes.BackColor = Color.Transparent;
         panelHeroes.Controls.Add(labelHeroes);
-        panelHeroes.Location = new Point(247, 0);
+        panelHeroes.Location = new Point(217, 0);
         panelHeroes.Name = "panelHeroes";
-        panelHeroes.Size = new Size(83, 40);
+        panelHeroes.Size = new Size(110, 40);
         panelHeroes.TabIndex = 0;
         panelHeroes.Click += Menu_Click;
         panelHeroes.MouseLeave += Menu_MouseLeave;
@@ -2486,9 +2525,8 @@ public class frmMain : Form
         // 
         labelHeroes.AutoSize = true;
         labelHeroes.BackColor = Color.Transparent;
-        labelHeroes.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-        labelHeroes.ForeColor = Color.FromArgb(224, 224, 224);
-        labelHeroes.Location = new Point(16, 13);
+        labelHeroes.Font = FontService.GetReaver(13f); labelHeroes.ForeColor = Color.FromArgb(224, 224, 224);
+        labelHeroes.Location = new Point(16, 8);
         labelHeroes.Name = "labelHeroes";
         labelHeroes.Size = new Size(55, 15);
         labelHeroes.TabIndex = 50;
@@ -2575,7 +2613,7 @@ public class frmMain : Form
         // 
         ClientVersion.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
         ClientVersion.AutoSize = true;
-        ClientVersion.Font = new Font("Segoe UI Emoji", 7.5F);
+        ClientVersion.Font = FontService.GetRadiance(9f);
         ClientVersion.ForeColor = Color.Gray;
         ClientVersion.Location = new Point(3, 551);
         ClientVersion.Name = "ClientVersion";
@@ -2607,7 +2645,7 @@ public class frmMain : Form
         tabControl1.Controls.Add(tabPage3);
         tabControl1.Controls.Add(tabPage5);
         tabControl1.Controls.Add(tabPage6);
-        tabControl1.Font = new Font("Segoe UI", 10F);
+        tabControl1.Font = FontService.GetRadiance(11f);
         tabControl1.ItemSize = new Size(80, 40);
         tabControl1.Location = new Point(0, 58);
         tabControl1.Multiline = true;
@@ -2636,7 +2674,7 @@ public class frmMain : Form
         // 
         keyPressed.AutoSize = true;
         keyPressed.BackColor = Color.Transparent;
-        keyPressed.Font = new Font("Segoe UI Emoji", 24F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        keyPressed.Font = FontService.GetRadiance(26f);
         keyPressed.ForeColor = Color.Gray;
         keyPressed.Location = new Point(500, 431);
         keyPressed.Name = "keyPressed";
@@ -2704,7 +2742,7 @@ public class frmMain : Form
         // 
         labelRight.AutoSize = true;
         labelRight.BackColor = Color.Transparent;
-        labelRight.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        labelRight.Font = FontService.GetRadiance(10f);
         labelRight.ForeColor = Color.FromArgb(75, 84, 89);
         labelRight.ImageAlign = ContentAlignment.MiddleRight;
         labelRight.Location = new Point(1085, 11);
@@ -2721,7 +2759,7 @@ public class frmMain : Form
         // 
         labelLeft.AutoSize = true;
         labelLeft.BackColor = Color.Transparent;
-        labelLeft.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        labelLeft.Font = FontService.GetRadiance(10f);
         labelLeft.ForeColor = Color.FromArgb(75, 84, 89);
         labelLeft.Location = new Point(37, 11);
         labelLeft.Name = "labelLeft";
@@ -2736,7 +2774,7 @@ public class frmMain : Form
         // 
         HeroName.AutoSize = true;
         HeroName.BackColor = Color.Transparent;
-        HeroName.Font = new Font("Segoe UI Emoji", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        HeroName.Font = FontService.GetRadiance(20f);
         HeroName.ForeColor = Color.Gainsboro;
         HeroName.Location = new Point(9, 39);
         HeroName.Name = "HeroName";
@@ -2832,7 +2870,7 @@ public class frmMain : Form
         // 
         label14.AutoSize = true;
         label14.BackColor = Color.Transparent;
-        label14.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label14.Font = FontService.GetRadiance(10f);
         label14.ForeColor = Color.Gray;
         label14.Location = new Point(948, 207);
         label14.Name = "label14";
@@ -2870,7 +2908,7 @@ public class frmMain : Form
         // 
         label15.AutoSize = true;
         label15.BackColor = Color.Transparent;
-        label15.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label15.Font = FontService.GetRadiance(10f);
         label15.ForeColor = Color.Gray;
         label15.Location = new Point(796, 207);
         label15.Name = "label15";
@@ -2895,7 +2933,7 @@ public class frmMain : Form
         // 
         label16.AutoSize = true;
         label16.BackColor = Color.Transparent;
-        label16.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label16.Font = FontService.GetRadiance(10f);
         label16.ForeColor = Color.Gray;
         label16.Location = new Point(643, 207);
         label16.Name = "label16";
@@ -2907,7 +2945,7 @@ public class frmMain : Form
         // 
         label10.AutoSize = true;
         label10.BackColor = Color.Transparent;
-        label10.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label10.Font = FontService.GetRadiance(10f);
         label10.ForeColor = Color.Gray;
         label10.Location = new Point(490, 207);
         label10.Name = "label10";
@@ -2945,7 +2983,7 @@ public class frmMain : Form
         // 
         label11.AutoSize = true;
         label11.BackColor = Color.Transparent;
-        label11.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label11.Font = FontService.GetRadiance(10f);
         label11.ForeColor = Color.Gray;
         label11.Location = new Point(337, 207);
         label11.Name = "label11";
@@ -2970,7 +3008,7 @@ public class frmMain : Form
         // 
         label12.AutoSize = true;
         label12.BackColor = Color.Transparent;
-        label12.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label12.Font = FontService.GetRadiance(10f);
         label12.ForeColor = Color.Gray;
         label12.Location = new Point(184, 207);
         label12.Name = "label12";
@@ -2995,7 +3033,7 @@ public class frmMain : Form
         // 
         label13.AutoSize = true;
         label13.BackColor = Color.Transparent;
-        label13.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label13.Font = FontService.GetRadiance(10f);
         label13.ForeColor = Color.Gray;
         label13.Location = new Point(31, 207);
         label13.Name = "label13";
@@ -3007,7 +3045,7 @@ public class frmMain : Form
         // 
         label9.AutoSize = true;
         label9.BackColor = Color.Transparent;
-        label9.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label9.Font = FontService.GetRadiance(10f);
         label9.ForeColor = Color.Gray;
         label9.Location = new Point(948, 28);
         label9.Name = "label9";
@@ -3033,7 +3071,7 @@ public class frmMain : Form
         // 
         label8.AutoSize = true;
         label8.BackColor = Color.Transparent;
-        label8.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label8.Font = FontService.GetRadiance(10f);
         label8.ForeColor = Color.Gray;
         label8.Location = new Point(796, 28);
         label8.Name = "label8";
@@ -3045,7 +3083,7 @@ public class frmMain : Form
         // 
         label7.AutoSize = true;
         label7.BackColor = Color.Transparent;
-        label7.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label7.Font = FontService.GetRadiance(10f);
         label7.ForeColor = Color.Gray;
         label7.Location = new Point(643, 28);
         label7.Name = "label7";
@@ -3085,7 +3123,7 @@ public class frmMain : Form
         // 
         label6.AutoSize = true;
         label6.BackColor = Color.Transparent;
-        label6.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label6.Font = FontService.GetRadiance(10f);
         label6.ForeColor = Color.Gray;
         label6.Location = new Point(490, 28);
         label6.Name = "label6";
@@ -3125,7 +3163,7 @@ public class frmMain : Form
         // 
         label5.AutoSize = true;
         label5.BackColor = Color.Transparent;
-        label5.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label5.Font = FontService.GetRadiance(10f);
         label5.ForeColor = Color.Gray;
         label5.Location = new Point(337, 28);
         label5.Name = "label5";
@@ -3151,7 +3189,7 @@ public class frmMain : Form
         // 
         label4.AutoSize = true;
         label4.BackColor = Color.Transparent;
-        label4.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label4.Font = FontService.GetRadiance(10f);
         label4.ForeColor = Color.Gray;
         label4.Location = new Point(184, 28);
         label4.Name = "label4";
@@ -3177,7 +3215,7 @@ public class frmMain : Form
         // 
         label3.AutoSize = true;
         label3.BackColor = Color.Transparent;
-        label3.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label3.Font = FontService.GetRadiance(10f);
         label3.ForeColor = Color.Gray;
         label3.Location = new Point(31, 28);
         label3.Name = "label3";
@@ -3235,7 +3273,7 @@ public class frmMain : Form
         // 
         label25.AutoSize = true;
         label25.BackColor = Color.Transparent;
-        label25.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label25.Font = FontService.GetRadiance(10f);
         label25.ForeColor = Color.Gray;
         label25.Location = new Point(648, 29);
         label25.Name = "label25";
@@ -3260,7 +3298,7 @@ public class frmMain : Form
         // 
         label24.AutoSize = true;
         label24.BackColor = Color.Transparent;
-        label24.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label24.Font = FontService.GetRadiance(10f);
         label24.ForeColor = Color.Gray;
         label24.Location = new Point(492, 28);
         label24.Name = "label24";
@@ -3284,7 +3322,7 @@ public class frmMain : Form
         // 
         label23.AutoSize = true;
         label23.BackColor = Color.Transparent;
-        label23.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label23.Font = FontService.GetRadiance(10f);
         label23.ForeColor = Color.Gray;
         label23.Location = new Point(338, 28);
         label23.Name = "label23";
@@ -3296,7 +3334,7 @@ public class frmMain : Form
         // 
         stopSounds.BackColor = Color.FromArgb(43, 47, 48);
         stopSounds.Cursor = Cursors.Hand;
-        stopSounds.Font = new Font("Segoe UI", 9F);
+        stopSounds.Font = FontService.GetRadiance(10f);
         stopSounds.ForeColor = Color.FromArgb(147, 157, 160);
         stopSounds.Location = new Point(34, 180);
         stopSounds.Name = "stopSounds";
@@ -3321,7 +3359,7 @@ public class frmMain : Form
         // 
         label22.AutoSize = true;
         label22.BackColor = Color.Transparent;
-        label22.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label22.Font = FontService.GetRadiance(10f);
         label22.ForeColor = Color.Gray;
         label22.Location = new Point(432, 5);
         label22.Name = "label22";
@@ -3333,7 +3371,7 @@ public class frmMain : Form
         // 
         label21.AutoSize = true;
         label21.BackColor = Color.Transparent;
-        label21.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label21.Font = FontService.GetRadiance(10f);
         label21.ForeColor = Color.Gray;
         label21.Location = new Point(370, 5);
         label21.Name = "label21";
@@ -3345,7 +3383,7 @@ public class frmMain : Form
         // 
         label20.AutoSize = true;
         label20.BackColor = Color.Transparent;
-        label20.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label20.Font = FontService.GetRadiance(10f);
         label20.ForeColor = Color.Gray;
         label20.Location = new Point(6, 5);
         label20.Name = "label20";
@@ -3357,7 +3395,7 @@ public class frmMain : Form
         // 
         SetDesktop.BackColor = Color.FromArgb(43, 47, 48);
         SetDesktop.Cursor = Cursors.Hand;
-        SetDesktop.Font = new Font("Segoe UI", 9F);
+        SetDesktop.Font = FontService.GetRadiance(10f);
         SetDesktop.ForeColor = Color.FromArgb(147, 157, 160);
         SetDesktop.Location = new Point(34, 435);
         SetDesktop.Name = "SetDesktop";
@@ -3370,7 +3408,7 @@ public class frmMain : Form
         // 
         ExportAll.BackColor = Color.FromArgb(43, 47, 48);
         ExportAll.Cursor = Cursors.Hand;
-        ExportAll.Font = new Font("Segoe UI", 9F);
+        ExportAll.Font = FontService.GetRadiance(10f);
         ExportAll.ForeColor = Color.FromArgb(147, 157, 160);
         ExportAll.Location = new Point(34, 404);
         ExportAll.Name = "ExportAll";
@@ -3383,7 +3421,7 @@ public class frmMain : Form
         // 
         ExportThis.BackColor = Color.FromArgb(43, 47, 48);
         ExportThis.Cursor = Cursors.Hand;
-        ExportThis.Font = new Font("Segoe UI", 9F);
+        ExportThis.Font = FontService.GetRadiance(10f);
         ExportThis.ForeColor = Color.FromArgb(147, 157, 160);
         ExportThis.Location = new Point(34, 373);
         ExportThis.Name = "ExportThis";
@@ -3396,7 +3434,7 @@ public class frmMain : Form
         // 
         label19.AutoSize = true;
         label19.BackColor = Color.Transparent;
-        label19.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label19.Font = FontService.GetRadiance(10f);
         label19.ForeColor = Color.Gray;
         label19.Location = new Point(805, 28);
         label19.Name = "label19";
@@ -3433,7 +3471,7 @@ public class frmMain : Form
         ExternalModView.BorderStyle = BorderStyle.None;
         ExternalModView.Columns.AddRange(new ColumnHeader[] { columnHeader5 });
         ExternalModView.Dock = DockStyle.Top;
-        ExternalModView.Font = new Font("Segoe UI", 12F);
+        ExternalModView.Font = FontService.GetRadiance(12f);
         ExternalModView.ForeColor = Color.Gray;
         ExternalModView.FullRowSelect = true;
         ExternalModView.HeaderStyle = ColumnHeaderStyle.None;
@@ -3457,7 +3495,7 @@ public class frmMain : Form
         // 
         flatButton1.BackColor = Color.FromArgb(43, 47, 48);
         flatButton1.Cursor = Cursors.Hand;
-        flatButton1.Font = new Font("Segoe UI", 9F);
+        flatButton1.Font = FontService.GetRadiance(10f);
         flatButton1.ForeColor = Color.FromArgb(147, 157, 160);
         flatButton1.Location = new Point(4, 95);
         flatButton1.Name = "flatButton1";
@@ -3470,7 +3508,7 @@ public class frmMain : Form
         // 
         importBtn.BackColor = Color.FromArgb(43, 47, 48);
         importBtn.Cursor = Cursors.Hand;
-        importBtn.Font = new Font("Segoe UI", 9F);
+        importBtn.Font = FontService.GetRadiance(10f);
         importBtn.ForeColor = Color.FromArgb(147, 157, 160);
         importBtn.Location = new Point(155, 95);
         importBtn.Name = "importBtn";
@@ -3483,7 +3521,7 @@ public class frmMain : Form
         // 
         label18.AutoSize = true;
         label18.BackColor = Color.Transparent;
-        label18.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        label18.Font = FontService.GetRadiance(10f);
         label18.ForeColor = Color.Gray;
         label18.Location = new Point(184, 220);
         label18.Name = "label18";
@@ -3517,7 +3555,7 @@ public class frmMain : Form
         LoadingScreenView.BackColor = Color.FromArgb(31, 32, 35);
         LoadingScreenView.BorderStyle = BorderStyle.None;
         LoadingScreenView.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4 });
-        LoadingScreenView.Font = new Font("Segoe UI", 12F);
+        LoadingScreenView.Font = FontService.GetRadiance(12f);
         LoadingScreenView.ForeColor = Color.Gray;
         LoadingScreenView.FullRowSelect = true;
         LoadingScreenView.HeaderStyle = ColumnHeaderStyle.None;
@@ -3569,7 +3607,7 @@ public class frmMain : Form
         // 
         label17.AutoSize = true;
         label17.BackColor = Color.Transparent;
-        label17.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label17.Font = FontService.GetRadiance(10f);
         label17.ForeColor = Color.Gray;
         label17.Location = new Point(31, 220);
         label17.Name = "label17";
@@ -3607,7 +3645,7 @@ public class frmMain : Form
         // 
         label2.AutoSize = true;
         label2.BackColor = Color.Transparent;
-        label2.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label2.Font = FontService.GetRadiance(10f);
         label2.ForeColor = Color.Gray;
         label2.Location = new Point(184, 28);
         label2.Name = "label2";
@@ -3619,7 +3657,7 @@ public class frmMain : Form
         // 
         label1.AutoSize = true;
         label1.BackColor = Color.Transparent;
-        label1.Font = new Font("Segoe UI Emoji", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        label1.Font = FontService.GetRadiance(10f);
         label1.ForeColor = Color.Gray;
         label1.Location = new Point(31, 28);
         label1.Name = "label1";
@@ -3663,7 +3701,7 @@ public class frmMain : Form
         // load
         // 
         load.AutoSize = true;
-        load.Font = new Font("Segoe UI Emoji", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        load.Font = FontService.GetRadiance(11f);
         load.ForeColor = SystemColors.ActiveBorder;
         load.Location = new Point(506, 274);
         load.Name = "load";
@@ -3672,7 +3710,7 @@ public class frmMain : Form
         // 
         // ImageMenu
         // 
-        ImageMenu.Font = new Font("Segoe UI", 8F);
+        ImageMenu.Font = FontService.GetRadiance(10f);
         ImageMenu.ForeColor = Color.White;
         ImageMenu.Items.AddRange(new ToolStripItem[] { OpenImageMenu, SaveImageMenu });
         ImageMenu.Name = "ImageMenu";
@@ -3826,6 +3864,11 @@ public class frmMain : Form
         // 🔑 Hero Video Service (rutas de videos .webm para hover animado)
         ServiceContainer.Register<IHeroVideoService>(new HeroVideoService());
 
+        // 🔑 Video Service (reproducción con LibVLCSharp)
+        var videoService = new VlcVideoService();
+        videoService.Initialize();
+        ServiceContainer.Register<IVideoService>(videoService);
+
         // ════════════════════════════════════════════════════════════
         // CAPA 2: SERVICIOS DE DATOS (dependen de capa 1)
         // ════════════════════════════════════════════════════════════
@@ -3900,18 +3943,5 @@ public class frmMain : Form
         ServiceContainer.Register<BundleHandlerRegistry>(bundleRegistry);
     }
 
-    private void ApplyReaverToBannerButtons()
-    {
-        var reaverFont = FontService.GetReaver(13f);
-
-        Heroes.Font = reaverFont;
-        World.Font = reaverFont;
-        Misc.Font = reaverFont;
-        Create.Font = reaverFont;
-
-        Heroes.Invalidate();
-        World.Invalidate();
-        Misc.Invalidate();
-        Create.Invalidate();
-    }
+    
 }

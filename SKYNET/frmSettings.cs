@@ -53,7 +53,6 @@ public class frmSettings : Form
     public frmSettings()
     {
         InitializeComponent();
-        FontService.ApplyRadianceToForm(this);
         ActiveSounds.CheckedChanged += ActiveSounds_CheckedChanged;
     }
 
@@ -325,7 +324,7 @@ public class frmSettings : Form
         this.panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(Event_MouseMove);
         this.panel1.MouseUp += new System.Windows.Forms.MouseEventHandler(Event_MouseUp);
         this.label5.AutoSize = true;
-        this.label5.Font = new System.Drawing.Font("Segoe UI", 10f);
+        this.label5.Font = FontService.GetRadiance(11f);
         this.label5.ForeColor = System.Drawing.Color.White;
         this.label5.Location = new System.Drawing.Point(313, 337);
         this.label5.Name = "label5";
@@ -334,7 +333,7 @@ public class frmSettings : Form
         this.label5.Text = "Reset individual items from database";
         this.label5.Click += new System.EventHandler(label5_Click);
         this.label4.AutoSize = true;
-        this.label4.Font = new System.Drawing.Font("Segoe UI", 10f);
+        this.label4.Font = FontService.GetRadiance(11f);
         this.label4.ForeColor = System.Drawing.Color.White;
         this.label4.Location = new System.Drawing.Point(10, 337);
         this.label4.Name = "label4";
@@ -342,7 +341,7 @@ public class frmSettings : Form
         this.label4.TabIndex = 259;
         this.label4.Text = "Remove Mod from Dota2";
         this.label3.AutoSize = true;
-        this.label3.Font = new System.Drawing.Font("Segoe UI", 10f);
+        this.label3.Font = FontService.GetRadiance(11f);
         this.label3.ForeColor = System.Drawing.Color.White;
         this.label3.Location = new System.Drawing.Point(11, 279);
         this.label3.Name = "label3";
@@ -350,7 +349,7 @@ public class frmSettings : Form
         this.label3.TabIndex = 257;
         this.label3.Text = "Save changes in database";
         this.label2.AutoSize = true;
-        this.label2.Font = new System.Drawing.Font("Segoe UI", 10f);
+        this.label2.Font = FontService.GetRadiance(11f);
         this.label2.ForeColor = System.Drawing.Color.White;
         this.label2.Location = new System.Drawing.Point(10, 221);
         this.label2.Name = "label2";
@@ -358,7 +357,7 @@ public class frmSettings : Form
         this.label2.TabIndex = 255;
         this.label2.Text = "Check cache manually";
         this.label1.AutoSize = true;
-        this.label1.Font = new System.Drawing.Font("Segoe UI", 10f);
+        this.label1.Font = FontService.GetRadiance(11f);
         this.label1.ForeColor = System.Drawing.Color.White;
         this.label1.Location = new System.Drawing.Point(10, 159);
         this.label1.Name = "label1";
@@ -400,7 +399,7 @@ public class frmSettings : Form
         this.changeBtn.BackColor = System.Drawing.Color.FromArgb(44, 48, 49);
         this.changeBtn.BackColorMouseOver = System.Drawing.Color.Empty;
         this.changeBtn.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.changeBtn.Font = new System.Drawing.Font("Segoe UI", 9f);
+        this.changeBtn.Font = FontService.GetRadiance(10f);
         this.changeBtn.ForeColorMouseOver = System.Drawing.Color.Empty;
         this.changeBtn.ImageAlignment = FlatButton._ImgAlign.Left;
         this.changeBtn.ImageIcon = null;
@@ -416,7 +415,7 @@ public class frmSettings : Form
         this.Reset.BackColor = System.Drawing.Color.FromArgb(44, 48, 49);
         this.Reset.BackColorMouseOver = System.Drawing.Color.FromArgb(57, 62, 63);
         this.Reset.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.Reset.Font = new System.Drawing.Font("Segoe UI", 9f);
+        this.Reset.Font = FontService.GetRadiance(10f);
         this.Reset.ForeColor = System.Drawing.Color.White;
         this.Reset.ForeColorMouseOver = System.Drawing.Color.Empty;
         this.Reset.ImageAlignment = FlatButton._ImgAlign.Left;
@@ -444,7 +443,7 @@ public class frmSettings : Form
         this.ActiveSounds.BoxColor = System.Drawing.Color.FromArgb(7, 164, 245);
         this.ActiveSounds.Checked = false;
         this.ActiveSounds.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.ActiveSounds.Font = new System.Drawing.Font("Segoe UI", 10f);
+        this.ActiveSounds.Font = FontService.GetRadiance(11f);
         this.ActiveSounds.ForeColor = System.Drawing.Color.White;
         this.ActiveSounds.Location = new System.Drawing.Point(14, 115);
         this.ActiveSounds.Name = "ActiveSounds";
@@ -455,7 +454,7 @@ public class frmSettings : Form
         this.deleteMod.BackColor = System.Drawing.Color.FromArgb(44, 48, 49);
         this.deleteMod.BackColorMouseOver = System.Drawing.Color.FromArgb(57, 62, 63);
         this.deleteMod.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.deleteMod.Font = new System.Drawing.Font("Segoe UI", 9f);
+        this.deleteMod.Font = FontService.GetRadiance(10f);
         this.deleteMod.ForeColor = System.Drawing.Color.White;
         this.deleteMod.ForeColorMouseOver = System.Drawing.Color.Empty;
         this.deleteMod.ImageAlignment = FlatButton._ImgAlign.Left;
@@ -471,7 +470,7 @@ public class frmSettings : Form
         this.saveBtn.BackColor = System.Drawing.Color.FromArgb(44, 48, 49);
         this.saveBtn.BackColorMouseOver = System.Drawing.Color.FromArgb(57, 62, 63);
         this.saveBtn.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.saveBtn.Font = new System.Drawing.Font("Segoe UI", 9f);
+        this.saveBtn.Font = FontService.GetRadiance(10f);
         this.saveBtn.ForeColor = System.Drawing.Color.White;
         this.saveBtn.ForeColorMouseOver = System.Drawing.Color.Empty;
         this.saveBtn.ImageAlignment = FlatButton._ImgAlign.Left;
@@ -487,7 +486,7 @@ public class frmSettings : Form
         this.CheckCache.BackColor = System.Drawing.Color.FromArgb(44, 48, 49);
         this.CheckCache.BackColorMouseOver = System.Drawing.Color.FromArgb(57, 62, 63);
         this.CheckCache.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.CheckCache.Font = new System.Drawing.Font("Segoe UI", 9f);
+        this.CheckCache.Font = FontService.GetRadiance(10f);
         this.CheckCache.ForeColor = System.Drawing.Color.White;
         this.CheckCache.ForeColorMouseOver = System.Drawing.Color.Empty;
         this.CheckCache.ImageAlignment = FlatButton._ImgAlign.Left;
@@ -502,7 +501,7 @@ public class frmSettings : Form
         this.CheckCache.Click += new System.EventHandler(CheckCache_Click);
         this.Dota2Path.BackColor = System.Drawing.Color.FromArgb(44, 48, 49);
         this.Dota2Path.BackColorControl = System.Drawing.Color.Empty;
-        this.Dota2Path.Font = new System.Drawing.Font("Segoe UI", 10f);
+        this.Dota2Path.Font = FontService.GetRadiance(11f);
         this.Dota2Path.ForeColor = System.Drawing.Color.White;
         this.Dota2Path.isCustomColor = false;
         this.Dota2Path.Location = new System.Drawing.Point(14, 181);
@@ -522,7 +521,7 @@ public class frmSettings : Form
         this.OpenDota.BoxColor = System.Drawing.Color.FromArgb(7, 164, 245);
         this.OpenDota.Checked = false;
         this.OpenDota.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.OpenDota.Font = new System.Drawing.Font("Segoe UI", 10f);
+        this.OpenDota.Font = FontService.GetRadiance(11f);
         this.OpenDota.ForeColor = System.Drawing.Color.White;
         this.OpenDota.Location = new System.Drawing.Point(14, 87);
         this.OpenDota.Name = "OpenDota";
@@ -535,7 +534,7 @@ public class frmSettings : Form
         this.GenerateOnStart.BoxColor = System.Drawing.Color.FromArgb(7, 164, 245);
         this.GenerateOnStart.Checked = false;
         this.GenerateOnStart.Cursor = System.Windows.Forms.Cursors.Hand;
-        this.GenerateOnStart.Font = new System.Drawing.Font("Segoe UI", 10f);
+        this.GenerateOnStart.Font = FontService.GetRadiance(11f);
         this.GenerateOnStart.ForeColor = System.Drawing.Color.White;
         this.GenerateOnStart.Location = new System.Drawing.Point(14, 59);
         this.GenerateOnStart.Name = "GenerateOnStart";

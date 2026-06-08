@@ -62,7 +62,6 @@ public class FrmItems : Form, IItemHost
     public FrmItems(Items item)
     {
         InitializeComponent();
-        FontService.ApplyRadianceToForm(this);
         Item = item;
         frm = this;
 
