@@ -59,11 +59,11 @@ public class frmMain : Form
 
     private PictureBox banner;
 
-    private Label labelHeroes;
+    private BannerTabLabel labelHeroes;
+    private BannerTabLabel labelMisc;
+    private BannerTabLabel labelWord;
+    private BannerTabLabel labelCreateMod;
 
-    private Label labelMisc;
-
-    private Label labelWord;
 
     private TabPage tabPage1;
 
@@ -136,8 +136,6 @@ public class frmMain : Form
     private ColumnHeader columnHeader4;
 
     private Label label18;
-
-    private Label labelCreateMod;
 
     private TabPage tabPage5;
 
@@ -287,7 +285,7 @@ public class frmMain : Form
         // Tamaño dinámico al 80% del escritorio (centrado)
         // ════════════════════════════════════════════════════════════
         var screen = Screen.PrimaryScreen.WorkingArea;
-        int newWidth = (int)(1199);
+        int newWidth = (int)(1250);
         int newHeight = (int)(768 * 0.90);
         base.Size = new Size(newWidth, newHeight);
         base.StartPosition = FormStartPosition.CenterScreen;
@@ -332,6 +330,10 @@ public class frmMain : Form
         };
 
         SetParents();
+
+        // Distribuir los 4 tabs del banner con espaciado uniforme
+        DistributeBannerTabs();
+        this.Load += (s, e) => DistributeBannerTabs();
 
         CultureInfo currentCulture = Thread.CurrentThread.CurrentCulture;
         if (currentCulture.ToString().Contains("es"))
@@ -588,7 +590,7 @@ public class frmMain : Form
 
         int totalSlots = columnsPerAttributeArray.Sum();
 
-        int availableWidth = this.ClientSize.Width - (sideMargin * 2);
+        int availableWidth = this.ClientSize.Width - (sideMargin * 6);
         int totalSpacingBetweenColumns = columnSpacing * 3;
         int totalSpacingBetweenPortraits = portraitSpacing * (totalSlots - 4);
         int availableForPortraits = availableWidth - totalSpacingBetweenColumns - totalSpacingBetweenPortraits;
@@ -980,11 +982,11 @@ public class frmMain : Form
             string videoPath = videoService?.GetVideoPath(hoveredPortrait.HeroName);
 
             _heroHoverOverlay.ShowOver(
-    portraitBounds: hoveredPortrait.Bounds,
-    heroImage: hoveredPortrait.HeroImage,
-    heroName: hoveredPortrait.HeroName,
-    displayName: hoveredPortrait.HeroDisplayName,
-    videoPath: videoPath);
+                portraitBounds: hoveredPortrait.Bounds,
+                heroImage: hoveredPortrait.HeroImage,
+                heroName: hoveredPortrait.HeroName,
+                displayName: hoveredPortrait.HeroDisplayName,
+                videoPath: videoPath);
         }
         catch (ObjectDisposedException)
         {
@@ -1251,7 +1253,55 @@ public class frmMain : Form
             keyPressed.Text = v;
         });
     }
+    private void LabelHeroes_Clicked(object sender, EventArgs e)
+    {
+        if (Updating) return;
 
+        CleanTabItems();
+        foreach (object control in tabPage1.Controls)
+        {
+            if (control is PictureBox)
+            {
+                ((PictureBox)control).Image = modCommon.GetHeroImage(((PictureBox)control).Name);
+                ((PictureBox)control).Tag = "1";
+            }
+        }
+        SelectTab(tabPage1);
+    }
+
+    private void LabelWord_Clicked(object sender, EventArgs e)
+    {
+        if (Updating) return;
+
+        if (tabPage4Loaded)
+        {
+            SelectTab(tabPage4);
+        }
+        else
+        {
+            ProcessWORDTab();
+        }
+    }
+
+    private void LabelMisc_Clicked(object sender, EventArgs e)
+    {
+        if (Updating) return;
+
+        if (tabPage3Loaded)
+        {
+            SelectTab(tabPage3);
+        }
+        else
+        {
+            ProcessMISCTab();
+        }
+    }
+
+    private void LabelCreateMod_Clicked(object sender, EventArgs e)
+    {
+        if (Updating) return;
+        manager.CreateMod();
+    }
     private void Menu_Click(object sender, EventArgs e)
     {
         if (Updating)
@@ -1871,121 +1921,17 @@ public class frmMain : Form
 
     private void Menu_MouseMove(object sender, MouseEventArgs e)
     {
-        if (Updating)
-        {
-            return;
-        }
-        if (sender is Label)
-        {
-            ((Label)sender).ForeColor = Color.FromArgb(224, 224, 224);
-        }
-        else if (sender is Panel)
-        {
-            foreach (Control control in ((Panel)sender).Controls)
-            {
-                if (control is Label)
-                {
-                    ((Label)control).ForeColor = Color.FromArgb(224, 224, 224);
-                }
-            }
-        }
-        if (!(sender is Label))
-        {
-        }
+        // Vacío - los tabs del banner manejan su propio hover (BannerTabLabel)
+        // Se mantiene el método solo porque createdBy todavía lo referencia
     }
 
     private void Menu_MouseLeave(object sender, EventArgs e)
     {
-        if (Updating)
-        {
-            return;
-        }
-        if (sender is Label)
-        {
-            if (CurrentTab == tabPage1)
-            {
-                if ((Label)sender == labelHeroes)
-                {
-                    return;
-                }
-                ((Label)sender).ForeColor = Color.Gray;
-            }
-            else if (CurrentTab == tabPage2)
-            {
-                if ((Label)sender == labelHeroes)
-                {
-                    return;
-                }
-                ((Label)sender).ForeColor = Color.Gray;
-            }
-            else if (CurrentTab == tabPage3)
-            {
-                if ((Label)sender == labelMisc)
-                {
-                    return;
-                }
-                ((Label)sender).ForeColor = Color.Gray;
-            }
-            else if (CurrentTab == tabPage4)
-            {
-                if ((Label)sender == labelWord)
-                {
-                    return;
-                }
-                ((Label)sender).ForeColor = Color.Gray;
-            }
-            else
-            {
-                ((Label)sender).ForeColor = Color.Gray;
-            }
-        }
-        else if (sender is Panel)
-        {
-            foreach (Control control in ((Panel)sender).Controls)
-            {
-                if (!(control is Label))
-                {
-                    continue;
-                }
-                if (CurrentTab == tabPage1)
-                {
-                    if ((Label)control == labelHeroes)
-                    {
-                        return;
-                    }
-                    ((Label)control).ForeColor = Color.Gray;
-                }
-                else if (CurrentTab == tabPage2)
-                {
-                    if ((Label)control == labelHeroes)
-                    {
-                        return;
-                    }
-                    ((Label)control).ForeColor = Color.Gray;
-                }
-                else if (CurrentTab == tabPage3)
-                {
-                    if ((Label)control == labelMisc)
-                    {
-                        return;
-                    }
-                    ((Label)control).ForeColor = Color.Gray;
-                }
-                else if (CurrentTab == tabPage4)
-                {
-                    if ((Label)control == labelWord)
-                    {
-                        return;
-                    }
-                    ((Label)control).ForeColor = Color.Gray;
-                }
-                else
-                {
-                    ((Label)control).ForeColor = Color.Gray;
-                }
-            }
-        }
-        if (sender is Label && (Label)sender == createdBy)
+        if (Updating) return;
+
+        // Solo manejamos el caso especial de createdBy
+        // (los tabs del banner ahora son BannerTabLabel y manejan su propio hover)
+        if (sender is Label senderLabel && senderLabel == createdBy)
         {
             boxInfo.Visible = false;
         }
@@ -2037,36 +1983,26 @@ public class frmMain : Form
 
     private void SetMenuLabelColor(TabPage tabPage)
     {
-        Label label = new Label();
+        BannerTabLabel activeLabel = null;
         switch (tabPage.Name)
         {
             case "tabPage1":
-                label = labelHeroes;
-                break;
             case "tabPage2":
-                label = labelHeroes;
+                activeLabel = labelHeroes;
                 break;
             case "tabPage3":
-                label = labelMisc;
+                activeLabel = labelMisc;
                 break;
             case "tabPage4":
-                label = labelWord;
+                activeLabel = labelWord;
                 break;
         }
-        foreach (Control menu in Menus)
-        {
-            if (menu is Label)
-            {
-                if (menu.Text == label.Text)
-                {
-                    menu.ForeColor = Color.FromArgb(224, 224, 224);
-                }
-                else
-                {
-                    menu.ForeColor = Color.Gray;
-                }
-            }
-        }
+
+        // Marcar activo solo el correspondiente
+        labelHeroes.IsActive = (activeLabel == labelHeroes);
+        labelWord.IsActive = (activeLabel == labelWord);
+        labelMisc.IsActive = (activeLabel == labelMisc);
+        labelCreateMod.IsActive = false; // CREATE MOD nunca queda "activo", es una acción
     }
 
     private void StopSounds_Click(object sender, EventArgs e)
@@ -2286,13 +2222,13 @@ public class frmMain : Form
         components = new Container();
         panel1 = new Panel();
         panelWord = new Panel();
-        labelWord = new Label();
+        labelWord = new BannerTabLabel();
         panelCreateMod = new Panel();
-        labelCreateMod = new Label();
+        labelCreateMod = new BannerTabLabel();
         panelMisc = new Panel();
-        labelMisc = new Label();
+        labelMisc = new BannerTabLabel();
         panelHeroes = new Panel();
-        labelHeroes = new Label();
+        labelHeroes = new BannerTabLabel();
         OpenDota = new Panel();
         OpenSettings = new PictureBox();
         CloseBtn = new PictureBox();
@@ -2439,23 +2375,14 @@ public class frmMain : Form
         panelWord.Name = "panelWord";
         panelWord.Size = new Size(95, 40);
         panelWord.TabIndex = 58;
-        panelWord.Click += Menu_Click;
-        panelWord.MouseLeave += Menu_MouseLeave;
-        panelWord.MouseMove += Menu_MouseMove;
         // 
         // labelWord
         // 
-        labelWord.AutoSize = true;
-        labelWord.BackColor = Color.Transparent;
-        labelWord.Font = FontService.GetReaver(13f); labelWord.ForeColor = Color.Gray;
-        labelWord.Location = new Point(18, 8);
         labelWord.Name = "labelWord";
-        labelWord.Size = new Size(52, 15);
-        labelWord.TabIndex = 52;
         labelWord.Text = "WORLD";
-        labelWord.Click += Menu_Click;
-        labelWord.MouseLeave += Menu_MouseLeave;
-        labelWord.MouseMove += Menu_MouseMove;
+        labelWord.Location = new Point(0, 0);
+        labelWord.Dock = DockStyle.Fill;
+        labelWord.TabClicked += LabelWord_Clicked;
         // 
         // panelCreateMod
         // 
@@ -2465,23 +2392,14 @@ public class frmMain : Form
         panelCreateMod.Name = "panelCreateMod";
         panelCreateMod.Size = new Size(155, 40);
         panelCreateMod.TabIndex = 59;
-        panelCreateMod.Click += Menu_Click;
-        panelCreateMod.MouseLeave += Menu_MouseLeave;
-        panelCreateMod.MouseMove += Menu_MouseMove;
         // 
         // labelCreateMod
         // 
-        labelCreateMod.AutoSize = true;
-        labelCreateMod.BackColor = Color.Transparent;
-        labelCreateMod.Font = FontService.GetReaver(13f); labelCreateMod.ForeColor = Color.Gray;
-        labelCreateMod.Location = new Point(5, 8);
         labelCreateMod.Name = "labelCreateMod";
-        labelCreateMod.Size = new Size(85, 15);
-        labelCreateMod.TabIndex = 56;
         labelCreateMod.Text = "CREATE MOD";
-        labelCreateMod.Click += Menu_Click;
-        labelCreateMod.MouseLeave += Menu_MouseLeave;
-        labelCreateMod.MouseMove += Menu_MouseMove;
+        labelCreateMod.Location = new Point(0, 0);
+        labelCreateMod.Dock = DockStyle.Fill;
+        labelCreateMod.TabClicked += LabelCreateMod_Clicked;
         // 
         // panelMisc
         // 
@@ -2491,23 +2409,14 @@ public class frmMain : Form
         panelMisc.Name = "panelMisc";
         panelMisc.Size = new Size(75, 40);
         panelMisc.TabIndex = 59;
-        panelMisc.Click += Menu_Click;
-        panelMisc.MouseLeave += Menu_MouseLeave;
-        panelMisc.MouseMove += Menu_MouseMove;
         // 
         // labelMisc
         // 
-        labelMisc.AutoSize = true;
-        labelMisc.BackColor = Color.Transparent;
-        labelMisc.Font = FontService.GetReaver(13f); labelMisc.ForeColor = Color.Gray;
-        labelMisc.Location = new Point(24, 8);
         labelMisc.Name = "labelMisc";
-        labelMisc.Size = new Size(37, 15);
-        labelMisc.TabIndex = 51;
         labelMisc.Text = "MISC";
-        labelMisc.Click += Menu_Click;
-        labelMisc.MouseLeave += Menu_MouseLeave;
-        labelMisc.MouseMove += Menu_MouseMove;
+        labelMisc.Location = new Point(0, 0);
+        labelMisc.Dock = DockStyle.Fill;
+        labelMisc.TabClicked += LabelMisc_Clicked;
         // 
         // panelHeroes
         // 
@@ -2517,23 +2426,14 @@ public class frmMain : Form
         panelHeroes.Name = "panelHeroes";
         panelHeroes.Size = new Size(110, 40);
         panelHeroes.TabIndex = 0;
-        panelHeroes.Click += Menu_Click;
-        panelHeroes.MouseLeave += Menu_MouseLeave;
-        panelHeroes.MouseMove += Menu_MouseMove;
         // 
         // labelHeroes
         // 
-        labelHeroes.AutoSize = true;
-        labelHeroes.BackColor = Color.Transparent;
-        labelHeroes.Font = FontService.GetReaver(13f); labelHeroes.ForeColor = Color.FromArgb(224, 224, 224);
-        labelHeroes.Location = new Point(16, 8);
         labelHeroes.Name = "labelHeroes";
-        labelHeroes.Size = new Size(55, 15);
-        labelHeroes.TabIndex = 50;
         labelHeroes.Text = "HEROES";
-        labelHeroes.Click += Menu_Click;
-        labelHeroes.MouseLeave += Menu_MouseLeave;
-        labelHeroes.MouseMove += Menu_MouseMove;
+        labelHeroes.Location = new Point(0, 0);
+        labelHeroes.Dock = DockStyle.Fill;
+        labelHeroes.TabClicked += LabelHeroes_Clicked;
         // 
         // OpenDota
         // 
@@ -3942,6 +3842,45 @@ public class frmMain : Form
 
         ServiceContainer.Register<BundleHandlerRegistry>(bundleRegistry);
     }
+    /// <summary>
+    /// Distribuye los 4 paneles de tabs (Heroes/World/Misc/CreateMod) con espaciado uniforme.
+    /// Los paneles se ajustan al ancho real de cada label dinámico.
+    /// </summary>
+    private void DistributeBannerTabs()
+    {
+        // Asegurar que los labels calcularon su tamaño
+        labelHeroes.PerformLayout();
+        labelWord.PerformLayout();
+        labelMisc.PerformLayout();
+        labelCreateMod.PerformLayout();
 
-    
+        // Configuración
+        const int spacing = -18;          // espacio horizontal entre tabs
+        const int extraSpaceAfterWorld = 18; // espacio EXTRA después de WORLD (antes de MISC)
+        const int startOffsetX = 250;    // donde arranca el primer tab (después del logo)
+        const int panelY = 0;
+        const int panelHeight = 40;
+
+        var panels = new[] { panelHeroes, panelWord, panelMisc, panelCreateMod };
+        var labels = new[] { labelHeroes, labelWord, labelMisc, labelCreateMod };
+
+        int currentX = startOffsetX;
+
+        for (int i = 0; i < panels.Length; i++)
+        {
+            int panelWidth = labels[i].Width + 10;
+
+            panels[i].Location = new Point(currentX, panelY);
+            panels[i].Size = new Size(panelWidth, panelHeight);
+
+            currentX += panelWidth + spacing;
+
+            // Si acabamos de posicionar WORLD (i == 1), agregar espacio extra antes de MISC
+            if (i == 1)
+            {
+                currentX += extraSpaceAfterWorld;
+            }
+        }
+    }
+
 }
