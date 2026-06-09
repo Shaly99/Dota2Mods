@@ -171,11 +171,11 @@ public class BannerTabLabel : Control
         {
             string ch = upper[i].ToString();
 
-            // Outline sutil (4 direcciones, 1px)
-           // g.DrawString(ch, Font, outlineBrush, currentX - 1, y);
-           // g.DrawString(ch, Font, outlineBrush, currentX + 1, y);
-            g.DrawString(ch, Font, outlineBrush, currentX, y - 1);
-            g.DrawString(ch, Font, outlineBrush, currentX, y + 1);
+            // Outline sutil (4 direcciones, 2px)
+            g.DrawString(ch, Font, outlineBrush, currentX + 2, y);
+            g.DrawString(ch, Font, outlineBrush, currentX, y + 2);
+            g.DrawString(ch, Font, outlineBrush, currentX + 2, y + 2);
+
 
             // Texto principal
             g.DrawString(ch, Font, textBrush, currentX, y);
